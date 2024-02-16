@@ -6,7 +6,9 @@ import com.example.todocrudbackend.exception.ResourceNotFoundException;
 import com.example.todocrudbackend.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,11 +40,11 @@ public class TodoService {
                 .collect(Collectors.toList());
     }
     
-    public TodoDto updateTodoDto(TodoDto todoDto,Long id){
+    public TodoDto updateTodo(TodoDto todoDto,Long id){
         Todo todo = getTodoById(id);
         todo.setTitle(todoDto.getTitle());
         todo.setDescription(todoDto.getDescription());
-        todo.setCompleted(todo.isCompleted());
+        todo.setCompleted(todoDto.isCompleted());
         Todo updateTodo = todoRepository.save(todo);
         return modelMapper.map(updateTodo, TodoDto.class);
     }
