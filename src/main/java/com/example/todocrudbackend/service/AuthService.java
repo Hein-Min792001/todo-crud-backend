@@ -7,6 +7,7 @@ import com.example.todocrudbackend.entity.User;
 import com.example.todocrudbackend.exception.ToDoApiException;
 import com.example.todocrudbackend.repository.RoleRepository;
 import com.example.todocrudbackend.repository.UserRepository;
+import com.example.todocrudbackend.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,8 +26,9 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider tokenProvider;
 
-    public String login(LoginDto loginDto){
+    public String login(LoginDto loginDto) {
         Authentication authentication =
                 authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(
@@ -34,17 +36,18 @@ public class AuthService {
                                 loginDto.getPassword()
                         )
                 );
-        return "Login Successfully!";
+        String token = tokenProvider.generateToken(authentication);
+        return token;
     }
 
 
-    public String register(RegisterDto registerDto){
+    public String register(RegisterDto registerDto) {
         //check username is already exist in database
-        if (userRepository.existsByUsername(registerDto.getUsername())){
+        if (userRepository.existsByUsername(registerDto.getUsername())) {
             throw new ToDoApiException(HttpStatus.BAD_REQUEST,
                     "Username already exists.");
         }
-        if (userRepository.existsByEmail(registerDto.getEmail())){
+        if (userRepository.existsByEmail(registerDto.getEmail())) {
             throw new ToDoApiException(HttpStatus.BAD_REQUEST,
                     "Email already exists!");
         }

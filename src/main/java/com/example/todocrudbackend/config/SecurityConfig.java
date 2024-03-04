@@ -1,6 +1,8 @@
 package com.example.todocrudbackend.config;
 
 import com.example.todocrudbackend.security.CustomUserDetailsService;
+import com.example.todocrudbackend.security.JwtAuthenticationEntryPoint;
+import com.example.todocrudbackend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
@@ -24,6 +27,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final CustomUserDetailsService userDetailsService;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final JwtAuthenticationFilter authenticationFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -56,13 +61,19 @@ public class SecurityConfig {
 //                                .hasRole("ADMIN")
 //                                .requestMatchers(HttpMethod.PATCH,"/api/**")
 //                                .hasAnyRole("ADMIN","USER")
-                        c.requestMatchers("/api/auth/**")
+                        c.requestMatchers(HttpMethod.OPTIONS,"/**")
+                                .permitAll()
+                        .requestMatchers("/api/auth/**")
                                 .permitAll()
 //                                requestMatchers(HttpMethod.GET, "/api/**")
 //                                .permitAll()
                                 .anyRequest()
                                 .authenticated())
                 .httpBasic(Customizer.withDefaults());
+        http.exceptionHandling(exception ->
+                exception.authenticationEntryPoint(authenticationEntryPoint));
+        http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
